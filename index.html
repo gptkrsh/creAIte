@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>My Website</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css"
+      integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+
+  <body>
+    <div class="container mt-5">
+      <h1>My Website</h1>
+      <form id="form">
+        <div class="form-group">
+          <label for="api-key">Open AI Api Key</label>
+          <input
+            type="password"
+            class="form-control"
+            id="api-key"
+            placeholder="Enter your Open AI Api Key"
+          />
+        </div>
+        <div class="form-group">
+          <label for="draft-tweet">Draft tweet / Idea</label>
+          <textarea class="form-control" id="draft-tweet" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+    <div class="container mt-5">
+      <h1>Generated Tweet</h1>
+      <div id="generated-tweet">Generated tweet will appear here</div>
+    </div>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"
+      integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"
+      integrity="sha512-6UofPqm0QupIL0kzS/UIzekR73/luZdC6i/kXDbWnLOJoqwklBK6519iUnShaYceJ0y4FaiPtX/hRnV/X/xlUQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"
+      integrity="sha512-1/RvZTcCDEUjY/CypiMz+iqqtaoQfAITmNSJY17Myp4Ms5mdxPS5UV7iOfdZoxcGhzFbOm6sntTKJppjvuhg4g=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+      // get the values of the input fields
+      // @type {HTMLInputElement}
+      const apiKey = document.getElementById("api-key");
+      if (localStorage.getItem("apiKey")) {
+        apiKey.value = localStorage.getItem("apiKey");
+      }
+      apiKey.onchange = () => {
+        localStorage.setItem("apiKey", apiKey.value);
+      };
+
+      // make a request to the OpenAI API
+      document.getElementById("form").onsubmit = (e) => {
+        const draftTweet = document.getElementById("draft-tweet").value;
+        e.preventDefault();
+        const requestUrl = "https://api.openai.com/v1/completions";
+        const requestBody = {
+          model: "text-davinci-003",
+          prompt: `Generate a tweet with newlines for spacing, emojis and 1 hashtag, act as a expert in the field, make the tweet look great, professional and try to make it viral, be less creative, just follow the draft\n\nHere's the draft:${draftTweet}\n\nTweet:`,
+          temperature: 0.6,
+          max_tokens: 150,
+          top_p: 1,
+          frequency_penalty: 0,
+          presence_penalty: 0.6,
+          stop: ["Here's the draft:", "Tweet:"],
+        };
+
+        const generatedTweetDiv = document.getElementById("generated-tweet");
+
+        generatedTweetDiv.innerHTML = "Generating tweet...";
+
+        const requestOptions = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey.value}`,
+          },
+          body: JSON.stringify(requestBody),
+        };
+
+        fetch(requestUrl, requestOptions)
+          .then((response) => response.json())
+          .then((data) => {
+            const generatedTweet = data.choices[0].text.trim();
+            generatedTweetDiv.innerText = generatedTweet;
+          })
+          .catch((error) => console.error(error));
+      };
+    </script>
+  </body>
+</html>
